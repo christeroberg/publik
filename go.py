@@ -99,7 +99,7 @@ if not st.session_state.ordet:
         "Skriv det hemliga ordet och tryck ENTER:", 
         key="input_felt",
         on_change=spara_och_generera_start,
-        type="password", # Döljer ordet medan man skriver
+        #type="password", # Döljer ordet medan man skriver
         placeholder="T.ex. Sommarstuga"
     )
 else:
