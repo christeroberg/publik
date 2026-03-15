@@ -28,7 +28,7 @@ if not st.session_state.hemligt_ord:
             with st.spinner("AI:n skapar ledtrådar..."):
                 try:
                     res = client.chat.completions.create(
-                        model="meta-llama/llama-3.1-8b-instruct:free",
+                        model="meta-llama/llama-3.2-3b-instruct:free",
                         messages=[
                             {"role": "system", "content": "Skriv 5 korta ledtrådar på svenska som börjar med 'Som...' eller 'Liknar...'. En per rad."},
                             {"role": "user", "content": f"Ordet är: {st.session_state.hemligt_ord}"}
