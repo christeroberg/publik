@@ -13,7 +13,11 @@ client = OpenAI(
     api_key=st.secrets["OPENROUTER_API_KEY"]
 )
 
+# Detta ändrar texten på webbläsarfliken:
 st.set_page_config(page_title="Imposter utmaningen: Gissa ordet", page_icon="🎮")
+
+# Detta ändrar rubriken som syns på skärmen:
+st.title("🕵️ Imposter utmaningen")
 
 # --- 2. Session State (Minne) ---
 if "hemligt_ord" not in st.session_state:
