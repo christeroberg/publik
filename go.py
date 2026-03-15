@@ -12,10 +12,9 @@ client = OpenAI(
     api_key=st.secrets["OPENROUTER_API_KEY"]
 )
 
-# Ändrar texten på webbläsarfliken
-st.set_page_config(page_title="Imposter utmaningen: Gissa ordet", page_icon="🎮")
+st.set_page_config(page_title="Imposter utmaningen", page_icon="🕵️")
 
-# --- 2. Session State (Minne) ---
+# --- 2. Session State ---
 if "hemligt_ord" not in st.session_state:
     st.session_state.hemligt_ord = ""
 if "ledtradar" not in st.session_state:
@@ -23,11 +22,11 @@ if "ledtradar" not in st.session_state:
 
 # --- 3. Funktion för att hämta ledtrådar ---
 def hamta_ledtradar(ordet, antal=5):
+    # Vi prioriterar Gemini som är stabilast för gratisanvändare just nu
     modeller = [
         "google/gemini-2.0-flash-exp:free",
-        "google/learnlm-1.5-pro-experimental:free",
         "meta-llama/llama-3.2-3b-instruct:free",
-        "mistralai/mistral-7b-instruct:free"
+        "openrouter/auto" # Låter OpenRouter välja om de andra fallerar
     ]
     
     sista_fel = ""
@@ -36,76 +35,60 @@ def hamta_ledtradar(ordet, antal=5):
             res = client.chat.completions.create(
                 model=m,
                 messages=[
-                    {
-                        "role": "system", 
-                        "content": f"Du är en expert på gåtor. Skriv {antal} korta poetiska ledtrådar på svenska som börjar med 'Som...' eller 'Liknar...'. En per rad. Nämn ABSOLUT INTE ordet '{ordet}' i ditt svar."
-                    },
-                    {"role": "user", "content": f"Ge mig ledtrådar för ordet: {ordet}"}
+                    {"role": "system", "content": f"Skriv {antal} korta ledtrådar på svenska om '{ordet}'. En per rad. Börja varje rad med 'Som...' eller 'Liknar...'. Nämn aldrig själva ordet."},
+                    {"role": "user", "content": f"Ge mig ledtrådar."}
                 ],
                 timeout=15
             )
-            rader = [r.strip() for r in res.choices[0].message.content.split('\n') if len(r.strip()) > 3]
+            rader = [r.strip() for r in res.choices[0].message.content.split('\n') if len(r.strip()) > 2]
             if rader:
                 return rader
         except Exception as e:
             sista_fel = str(e)
             continue
     
-    st.error(f"AI-tjänsten är överbelastad just nu. Försök igen om en minut. (Fel: {sista_fel})")
+    st.error(f"Kunde inte hämta svar. Kontrollera din API-nyckel i Secrets! (Fel: {sista_fel})")
     return []
 
-# --- 4. UI / LOGIK ---
+# --- 4. UI ---
 
-# STEG 1: START-VY
 if not st.session_state.hemligt_ord:
-    # Här sätter vi den stora rubriken för inmatningssidan
-    st.title("🕵️ Imposter utmaningen: Gissa ordet")
-    st.info("Börja med att välja ett ord som någon annan ska gissa på.")
+    # Vi använder st.header istället för st.title för att få plats på en rad
+    st.header("🕵️ Imposter utmaningen: Gissa ordet")
+    st.info("Välj ett ord som din kompis ska gissa på.")
     
-    with st.form("setup", clear_on_submit=True):
-        valt_ord = st.text_input("Välj ett hemligt ord:", placeholder="T.ex. Banan")
-        skicka = st.form_submit_button("Starta spelet")
-        
-        if skicka and valt_ord:
+    with st.form("setup"):
+        valt_ord = st.text_input("Välj ett hemligt ord:", placeholder="T.ex. Kaffekopp")
+        if st.form_submit_button("Starta spelet") and valt_ord:
             st.session_state.hemligt_ord = valt_ord.strip().lower()
             with st.spinner("AI-agenten skapar ledtrådar..."):
-                nya_ledtradar = hamta_ledtradar(st.session_state.hemligt_ord)
-                if nya_ledtradar:
-                    st.session_state.ledtradar = nya_ledtradar
+                nya = hamta_ledtradar(st.session_state.hemligt_ord)
+                if nya:
+                    st.session_state.ledtradar = nya
                     st.rerun()
                 else:
                     st.session_state.hemligt_ord = ""
-
-# STEG 2: SPEL-VY
 else:
-    # Här sätter vi rubriken som visas när man gissar
-    st.title("🎮 Gissa Ordet")
-    st.success(f"✅ Ordet är dolt! Det finns {len(st.session_state.ledtradar)} ledtrådar.")
-    
+    st.header("🎮 Gissa Ordet")
     for i, ledtrad in enumerate(st.session_state.ledtradar, 1):
         st.info(f"Ledtråd {i}: {ledtrad}")
 
-    if st.button("Hämta 5 ledtrådar till"):
-        with st.spinner("Hämtar fler..."):
+    if st.button("Hämta fler ledtrådar"):
+        with st.spinner("Hämtar..."):
             fler = hamta_ledtradar(st.session_state.hemligt_ord)
             if fler:
                 st.session_state.ledtradar.extend(fler)
                 st.rerun()
 
-    st.divider()
-
-    with st.form("guess_form", clear_on_submit=True):
-        gissning = st.text_input("Vad är det för ord?")
+    with st.form("guess"):
+        gissning = st.text_input("Din gissning:")
         if st.form_submit_button("Gissa!"):
             if gissning.lower() == st.session_state.hemligt_ord:
                 st.balloons()
-                st.success(f"🎉 RÄTT! Ordet var: {st.session_state.hemligt_ord.upper()}")
+                st.success("🎉 Rätt gissat!")
             else:
-                st.error("Fel gissat, försök igen!")
+                st.error("Tyvärr fel, försök igen!")
 
-# Sidomeny
-st.sidebar.title("Inställningar")
-if st.sidebar.button("Nollställ och börja om"):
-    for key in list(st.session_state.keys()):
-        del st.session_state[key]
+if st.sidebar.button("Nollställ spelet"):
+    st.session_state.clear()
     st.rerun()
