@@ -22,21 +22,21 @@ if "ledtradar" not in st.session_state:
 def hamta_ledtradar(ordet, antal=5):
     try:
         res = client.chat.completions.create(
-            model="openai/gpt-4o-mini", # Nu använder vi en av de bästa modellerna!
+            model="openai/gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "Du är en expert på gåtor. Skriv korta, poetiska ledtrådar på svenska. Börja varje rad med 'Som...' eller 'Liknar...'. Nämn aldrig själva ordet."},
-                {"role": "user", "content": f"Ge mig {antal} ledtrådar för ordet: {ordet}"}
+                {"role": "system", "content": f"Du är en expert på gåtor. Skriv exakt {antal} korta, poetiska ledtrådar på svenska. Varje ledtråd på en ny rad. Börja varje rad med 'Som...' eller 'Liknar...'. Nämn aldrig ordet '{ordet}'."},
+                {"role": "user", "content": f"Ge mig {antal} ledtrådar för mitt hemliga ord."}
             ]
         )
-        rader = res.choices[0].message.content.strip().split('\n')
-        return [r.strip() for r in rader if len(r) > 2]
+        # Dela upp svaret i rader, rensa tomma rader och ta bara de första 5 (ifall AI:n skriver för mycket)
+        rader = [r.strip() for r in res.choices[0].message.content.strip().split('\n') if len(r.strip()) > 2]
+        return rader[:antal] 
     except Exception as e:
         st.error(f"Fel vid hämtning: {e}")
         return []
 
 # --- 3. UI ---
 if not st.session_state.hemligt_ord:
-    # Rubrik på en rad
     st.subheader("🕵️ Imposter utmaningen: Gissa ordet!")
     
     with st.form("setup"):
@@ -44,14 +44,26 @@ if not st.session_state.hemligt_ord:
         if st.form_submit_button("Starta spelet") and valt_ord:
             st.session_state.hemligt_ord = valt_ord.strip().lower()
             with st.spinner("AI-agenten tänker ut ledtrådar..."):
+                # Hämtar de första 5
                 st.session_state.ledtradar = hamta_ledtradar(st.session_state.hemligt_ord)
                 st.rerun()
 else:
     st.subheader("🎮 Gissa Ordet")
+    
+    # Visa alla ledtrådar som finns i listan
     for i, ledtrad in enumerate(st.session_state.ledtradar, 1):
         st.info(f"Ledtråd {i}: {ledtrad}")
 
-    with st.form("guess"):
+    # KNAPP FÖR ATT HÄMTA FLER (Ligger utanför gissningsformuläret)
+    if st.button("Hämta 5 ledtrådar till"):
+        with st.spinner("Hämtar fler ledtrådar..."):
+            nya_ledtradar = hamta_ledtradar(st.session_state.hemligt_ord)
+            st.session_state.ledtradar.extend(nya_ledtradar)
+            st.rerun()
+
+    st.divider()
+
+    with st.form("guess", clear_on_submit=True):
         gissning = st.text_input("Din gissning:")
         if st.form_submit_button("Gissa!"):
             if gissning.lower() == st.session_state.hemligt_ord:
