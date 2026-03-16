@@ -5,7 +5,7 @@ from openai import OpenAI
 if "OPENROUTER_API_KEY" not in st.secrets:
     st.error("Nyckeln saknas i Streamlit Cloud Secrets!")
     st.stop()
-else 
+else :
     st.text_input("Key exist")
     st.stop()
 
