@@ -5,6 +5,7 @@ from openai import OpenAI
 if "OPENROUTER_API_KEY" not in st.secrets:
     st.error("Nyckeln saknas i Streamlit Cloud Secrets!")
     st.stop()
+else st.text_input("Key exist")
 
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
