@@ -11,7 +11,7 @@ client = OpenAI(
     api_key=st.secrets["OPENROUTER_API_KEY"]
 )
 
-st.set_page_config(page_title="Imposter utmaningen", page_icon="🕵️")
+st.set_page_config(page_title="Imposter utmaningen!", page_icon="🕵️")
 
 if "hemligt_ord" not in st.session_state:
     st.session_state.hemligt_ord = ""
