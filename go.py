@@ -5,7 +5,9 @@ from openai import OpenAI
 if "OPENROUTER_API_KEY" not in st.secrets:
     st.error("Nyckeln saknas i Streamlit Cloud Secrets!")
     st.stop()
-else st.text_input("Key exist")
+else 
+    st.text_input("Key exist")
+    st.stop()
 
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
@@ -41,7 +43,7 @@ if not st.session_state.hemligt_ord:
     st.subheader("🕵️ Imposter utmaningen: Gissa ordet!")
     
     with st.form("setup"):
-        valt_ord = st.text_input("Välj ett hemligt ord:", placeholder="T.ex. Sommarstuga", "OBS! Endast ETT ord)
+        valt_ord = st.text_input("Välj ett hemligt ord:", placeholder="T.ex. Sommarstuga", "OBS! Endast ETT ord")
         if st.form_submit_button("Starta spelet") and valt_ord:
             st.session_state.hemligt_ord = valt_ord.strip().lower()
             with st.spinner("AI-agenten tänker ut ledtrådar..."):
