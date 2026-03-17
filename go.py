@@ -24,7 +24,7 @@ def hamta_ledtradar(ordet, antal=5):
         res = client.chat.completions.create(
             model="openai/gpt-4o-mini",
             messages=[
-                {"role": "system", "content": f"Du är en expert på gåtor. Skriv exakt {antal} korta, poetiska ledtrådar på svenska. Varje ledtråd på en ny rad. Börja varje rad med 'Som...' eller 'Liknar...'. Nämn aldrig ordet '{ordet}'."},
+                {"role": "system", "content": f"Du är en expert på gåtor. Skriv exakt {antal} korta, poetiska ledtrådar på svenska. Varje ledtråd på en ny rad. Börja inte varje rad med 'Som...' eller 'Liknar...'. Nämn aldrig ordet '{ordet}'."},
                 {"role": "user", "content": f"Ge mig {antal} ledtrådar för mitt hemliga ord."}
             ]
         )
