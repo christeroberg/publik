@@ -37,7 +37,7 @@ def hamta_ledtradar(ordet, antal=5):
 
 # --- 3. UI ---
 if not st.session_state.hemligt_ord:
-    st.subheader("🕵️ Imposter utmaningen: Gissa ordet!")
+    st.subheader("🕵️ Imposter utmaningen: Gissa det hemliga ordet!")
     
     with st.form("setup"):
         valt_ord = st.text_input("Välj endast ETT hemligt ord:", placeholder="T.ex. Sommarstuga")
